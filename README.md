@@ -1,7 +1,8 @@
 # DATA-INTERNSHIP-TRACK-A-PROJECT
 Data analytics projects using SQL and Powerbi, and is  focused on Sales analysis and Insights.
 Internship Project A – Northwind Traders Retail and Supply chain
-**
+
+
  **Project Overview****
 
 This project focuses on analyzing the Northwind Traders dataset to uncover insights into sales performance, customer behavior, and retail supply chain operations.
