@@ -1,0 +1,690 @@
+-- ----  show table;
+-- use northwind;
+-- show tables;
+-- select * from customers;
+-- =====================================
+-- -- NORTHWIND SQL PROJECT
+-- -- GROUP 1
+-- -- =====================================
+
+-- -- CREATING A NEW DATABASE
+-- CREATE DATABASE northwind;
+
+-- -- TO MAKE USE OF OUR DATABASE
+-- USE northwind;
+-- show tables;
+
+
+-- select * from orders details;
+
+-- -- SHOWING ALL TABLES THAT WERE LOADED INTO THE NORTHWIND DATABASE
+
+-- TIER 1: Q1 - Q12
+-- Basic aggregation, filtering, sorting, joins
+
+-- -- Q1: Total Orders
+-- Shows the total number of orders processed, helping measure overall transaction volume.
+-- SELECT COUNT(*) AS total_orders
+-- FROM orders;
+
+-- -- Q2: Total Revenue
+-- -- Reveals the company’s total sales value, serving as the main indicator of business performance
+-- SELECT ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS total_revenue
+-- FROM order_details od;
+
+-- -- Q3: Total Customers
+-- -- Identifies the number of unique customers, showing the size of the active customer base.
+-- SELECT COUNT(*) AS total_customers
+-- FROM customers;
+
+-- Q4: Average Order Value
+-- Measures how much customers spend per order on average, useful for tracking purchasing behavior.
+-- SELECT ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)) / COUNT(DISTINCT od.order_id), 2) AS avg_order_value
+-- FROM order_details od;
+
+-- -- Q5: Total Products
+-- -- Shows the total number of products in the catalog, reflecting product range and inventory breadth
+-- SELECT COUNT(*) AS total_products
+-- FROM products;
+-- use northwind;
+-- Q6: Orders by Country
+-- Highlights which countries generate the most orders, helping identify strongest regional markets.
+-- SELECT 
+--     o.ship_country_region,
+--     COUNT(*) AS total_orders
+-- FROM orders o
+-- GROUP BY o.ship_country_region
+-- ORDER BY total_orders DESC;
+
+-- Q7: Customers by Country
+-- Reveals customer distribution across countries, useful for market segmentation and expansion analysis
+-- SELECT 
+--     c.country_region,
+--     COUNT(*) AS total_customers
+-- FROM customers c
+-- GROUP BY c.country_region
+-- ORDER BY total_customers DESC;
+
+-- Q8: Products by Category
+-- Shows how products are distributed across categories, helping assess product mix.
+-- SELECT 
+--     p.category,
+--     COUNT(*) AS product_count
+-- FROM products p
+-- GROUP BY p.category
+-- ORDER BY product_count DESC;
+
+-- Q9: Employees by Job Title
+-- Summarizes staff structure by role, useful for understanding workforce composition.
+-- SELECT 
+--     e.job_title,
+--     COUNT(*) AS employee_count
+-- FROM employees e
+-- GROUP BY e.job_title
+-- ORDER BY employee_count DESC;
+
+-- -- Q10: Orders per Customer
+-- -- Measures how frequently each customer places orders, helping identify loyal and repeat buyers
+-- SELECT 
+--     c.id AS customer_id,
+--     c.company,
+--     COUNT(o.id) AS order_count
+-- FROM customers c
+-- LEFT JOIN orders o
+--     ON c.id = o.customer_id
+-- GROUP BY c.id, c.company
+-- ORDER BY order_count DESC, c.company;
+
+-- -- Q11: Revenue by Product
+-- -- Identifies which individual products contribute the most revenue
+-- SELECT 
+--     p.id AS product_id,
+--     p.product_name,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM order_details od
+-- JOIN products p
+--     ON od.product_id = p.id
+-- GROUP BY p.id, p.product_name
+-- ORDER BY revenue DESC;
+
+-- -- Q12: Revenue by Category
+-- -- Shows which product categories drive the highest sales performance
+-- SELECT 
+--     p.category,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM order_details od
+-- JOIN products p
+--     ON od.product_id = p.id
+-- GROUP BY p.category
+-- ORDER BY revenue DESC;
+-- TIER 2: Q13 - Q28
+-- Revenue analysis, date filtering, subqueries, self joins
+
+-- Q13: Monthly Revenue
+-- Tracks revenue trends over time on a monthly basis to detect seasonality and growth patterns
+-- SELECT 
+--     YEAR(o.order_date) AS order_year,
+--     MONTH(o.order_date) AS order_month,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS monthly_revenue
+-- FROM orders o
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY YEAR(o.order_date), MONTH(o.order_date)
+-- ORDER BY order_year, order_month;
+
+-- -- Q14: Yearly Revenue
+-- -- Summarizes annual sales performance, useful for long-term business comparison
+-- SELECT 
+--     YEAR(o.order_date) AS order_year,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS yearly_revenue
+-- FROM orders o
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY YEAR(o.order_date)
+-- ORDER BY order_year;
+
+-- -- Q15: Discount Given
+-- -- Measures the total discount amount granted, helping evaluate pricing and promotional impact.
+-- SELECT 
+--     ROUND(SUM(od.quantity * od.unit_price * od.discount), 2) AS total_discount_given
+-- FROM order_details od;
+
+-- -- Q16: Revenue by Customer
+-- -- Identifies how much each customer contributes to total revenue
+-- SELECT 
+--     c.id AS customer_id,
+--     c.company,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM customers c
+-- JOIN orders o
+--     ON c.id = o.customer_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY c.id, c.company
+-- ORDER BY revenue DESC;
+
+-- -- Q17: Top 10 Customers by Revenue
+-- -- Highlights the most valuable customers for retention and relationship management.
+-- SELECT 
+--     c.id AS customer_id,
+--     c.company,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM customers c
+-- JOIN orders o
+--     ON c.id = o.customer_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY c.id, c.company
+-- ORDER BY revenue DESC
+-- LIMIT 10;
+
+-- -- Q18: Revenue by Employee
+-- -- Shows which employees generate the most sales, useful for performance evaluation.
+-- SELECT 
+--     e.id AS employee_id,
+--     CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM employees e
+-- JOIN orders o
+--     ON e.id = o.employee_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY e.id, employee_name
+-- ORDER BY revenue DESC;
+
+-- -- Q19: Top 5 Products by Revenue
+-- -- Identifies the best-performing products based on revenue contribution
+-- SELECT 
+--     p.id AS product_id,
+--     p.product_name,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM products p
+-- JOIN order_details od
+--     ON p.id = od.product_id
+-- GROUP BY p.id, p.product_name
+-- ORDER BY revenue DESC
+-- LIMIT 5;
+
+-- -- Q20: Bottom 5 Products by Revenue
+-- -- Reveals underperforming products that may need review or repositioning
+-- SELECT 
+--     p.id AS product_id,
+--     p.product_name,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM products p
+-- JOIN order_details od
+--     ON p.id = od.product_id
+-- GROUP BY p.id, p.product_name
+-- ORDER BY revenue ASC
+-- LIMIT 5;
+-- -- Q21: Orders Not Yet Shipped
+-- -- Shows pending orders, helping monitor fulfillment backlog and operational delays
+-- SELECT 
+--     o.id AS order_id,
+--     o.order_date,
+--     o.shipped_date,
+--     o.ship_name,
+--     o.ship_country_region
+-- FROM orders o
+-- WHERE o.shipped_date IS NULL
+-- ORDER BY o.order_date;
+
+-- -- Q22: On-Time Delivery Rate
+-- -- Measures delivery efficiency by showing the percentage of orders shipped on time
+-- SELECT 
+--     ROUND(
+--         100 * SUM(CASE WHEN shipped_date IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*),
+--         2
+--     ) AS shipped_order_rate_pct
+-- FROM orders;
+
+-- -- Q23: Revenue for 2006
+-- -- Provides a focused look at sales performance for the year 2006
+-- SELECT 
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue_2006
+-- FROM orders o
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- WHERE YEAR(o.order_date) = 2006;
+
+-- -- Q24: Customers with Above-Average Revenue
+-- -- Identifies high-value customers whose spending exceeds the overall customer average
+--  -- SELECT *
+-- -- -- -- FROM (
+-- -- -- --     SELECT 
+-- -- -- --         c.id AS customer_id,
+-- -- -- --         c.company,
+-- -- -- --         ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- -- --     FROM customers c
+-- -- --     JOIN orders o
+-- -- --         ON c.id = o.customer_id
+-- -- --     JOIN order_details od
+-- -- --         ON o.id = od.order_id
+-- -- --     GROUP BY c.id, c.company
+-- -- -- ) customer_revenue
+-- -- -- WHERE revenue > (
+-- -- --     SELECT AVG(revenue)
+-- -- --     FROM (
+-- -- -- --         SELECT 
+-- -- -- --             SUM(od.quantity * od.unit_price * (1 - od.discount)) AS revenue
+-- -- -- --         FROM orders o
+-- -- -- --         JOIN order_details od
+-- -- -- --             ON o.id = od.order_id
+-- -- -- --         GROUP BY o.customer_id
+-- -- -- --     ) avg_revenue_table
+-- -- -- -- )
+-- -- -- -- ORDER BY revenue DESC;
+-- Q25: Employees with Above-Average Orders
+-- Highlights employees performing above the average order-handling level
+-- SELECT *
+-- FROM (
+--     SELECT 
+--         e.id AS employee_id,
+--         CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
+--         COUNT(o.id) AS order_count
+--     FROM employees e
+--     LEFT JOIN orders o
+--         ON e.id = o.employee_id
+--     GROUP BY e.id, employee_name
+-- ) employee_orders
+-- WHERE order_count > (
+--     SELECT AVG(order_count)
+--     FROM (
+--         SELECT COUNT(*) AS order_count
+--         FROM orders
+--         GROUP BY employee_id
+--     ) avg_orders
+-- )
+-- ORDER BY order_count DESC;
+
+-- -- Q26: Products Never Ordered
+-- -- Reveals products with zero sales activity, useful for inventory and catalog review
+-- SELECT 
+--     p.id AS product_id,
+--     p.product_name
+-- FROM products p
+-- LEFT JOIN order_details od
+--     ON p.id = od.product_id
+-- WHERE od.product_id IS NULL
+-- ORDER BY p.product_name;
+
+-- -- Q27: Customers with No Orders
+-- -- Identifies inactive customers who may need re-engagement strategies
+-- SELECT 
+--     c.id AS customer_id,
+--     c.company
+-- FROM customers c
+-- LEFT JOIN orders o
+--     ON c.id = o.customer_id
+-- WHERE o.id IS NULL
+-- ORDER BY c.company;
+
+-- -- Q28: Employee Pair Comparison (self join)
+-- -- Compares employee performance side by side to evaluate relative productivity
+-- SELECT 
+--     e1.id AS employee_1_id,
+--     CONCAT(e1.first_name, ' ', e1.last_name) AS employee_1_name,
+--     e2.id AS employee_2_id,
+--     CONCAT(e2.first_name, ' ', e2.last_name) AS employee_2_name
+-- FROM employees e1
+-- JOIN employees e2
+--     ON e1.id < e2.id
+-- ORDER BY e1.id, e2.id;
+-- - TIER 3: Q29 - Q42
+-- CTEs, RFM, window functions, cohort-style analysis
+
+-- Q29: Customer Recency
+-- Measures how recently each customer placed an order, useful for engagement analysis
+-- SELECT 
+--     o.customer_id,
+--     MAX(o.order_date) AS last_order_date,
+--     DATEDIFF((SELECT MAX(order_date) FROM orders), MAX(o.order_date)) AS recency_days
+-- FROM orders o
+-- GROUP BY o.customer_id
+-- ORDER BY recency_days ASC;
+
+-- Q30: Customer Frequency
+-- Shows how often each customer places orders, helping identify loyal buyers
+-- SELECT 
+--     o.customer_id,
+--     COUNT(o.id) AS frequency
+-- FROM orders o
+-- GROUP BY o.customer_id
+-- ORDER BY frequency DESC;
+
+-- Q31: Customer Monetary Value
+-- Measures the total amount each customer has spent, supporting value-based segmentation
+-- SELECT 
+--     o.customer_id,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS monetary_value
+-- FROM orders o
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY o.customer_id
+-- ORDER BY monetary_value DESC;
+
+-- -- Q32: Basic RFM Table
+-- -- Combines recency, frequency, and monetary metrics to classify customer behavior and value
+-- -- WITH r AS (
+--     SELECT 
+--         customer_id,
+--         DATEDIFF((SELECT MAX(order_date) FROM orders), MAX(order_date)) AS recency
+--     FROM orders
+--     GROUP BY customer_id
+--     ),
+-- f AS (
+--     SELECT 
+--         customer_id,
+--         COUNT(id) AS frequency
+--     FROM orders
+--     GROUP BY customer_id
+-- ),
+-- m AS (
+--     SELECT 
+--         o.customer_id,
+--         ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS monetary
+--     FROM orders o
+--     JOIN order_details od
+--         ON o.id = od.order_id
+--     GROUP BY o.customer_id
+-- )
+-- SELECT 
+--     c.id AS customer_id,
+--     c.company,
+--     r.recency,
+--     f.frequency,
+--     m.monetary
+-- FROM customers c
+-- JOIN r ON c.id = r.customer_id
+-- JOIN f ON c.id = f.customer_id
+-- JOIN m ON c.id = m.customer_id
+-- ORDER BY m.monetary DESC;
+
+-- -- Q33: Rank Customers by Revenue
+-- -- Orders customers by sales contribution to identify the most valuable accounts
+-- SELECT 
+--     c.id AS customer_id,
+--     c.company,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue,
+--     RANK() OVER (
+--         ORDER BY SUM(od.quantity * od.unit_price * (1 - od.discount)) DESC
+--     ) AS revenue_rank
+-- FROM customers c
+-- JOIN orders o
+--     ON c.id = o.customer_id
+-- JOIN order_details o
+--     ON o.id = od.order_id
+-- GROUP BY c.id, c.company;
+
+-- -- Q34: Rank Employees by Revenue
+-- -- Ranks employees based on revenue generated to assess sales effectiveness
+-- SELECT 
+--     e.id AS employee_id,
+--     CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue,
+--     RANK() OVER (
+--         ORDER BY SUM(od.quantity * od.unit_price * (1 - od.discount)) DESC
+--     ) AS revenue_rank
+-- FROM employees e
+-- JOIN orders o
+--     ON e.id = o.employee_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY e.id, employee_name;
+
+-- -- Q35: Monthly Revenue Running Total
+-- -- Shows cumulative revenue growth month by month to track progress over time
+-- WITH monthly_sales AS (
+--     SELECT 
+--         YEAR(o.order_date) AS order_year,
+--         MONTH(o.order_date) AS order_month,
+--         SUM(od.quantity * od.unit_price * (1 - od.discount)) AS revenue
+--     FROM orders o
+--     JOIN order_details od
+--         ON o.id = od.order_id
+--     GROUP BY YEAR(o.order_date), MONTH(o.order_date)
+-- )
+-- SELECT 
+--     order_year,
+--     order_month,
+--     ROUND(revenue, 2) AS revenue,
+--     ROUND(SUM(revenue) OVER (ORDER BY order_year, order_month), 2) AS running_total_revenue
+-- FROM monthly_sales;
+
+-- -- Q36: Monthly Revenue Growth
+-- -- Measures month-over-month revenue changes to identify growth or decline trends.
+-- WITH monthly_sales AS (
+--     SELECT 
+--         YEAR(o.order_date) AS order_year,
+--         MONTH(o.order_date) AS order_month,
+--         SUM(od.quantity * od.unit_price * (1 - od.discount)) AS revenue
+--     FROM orders o
+--     JOIN order_details od
+--         ON o.id = od.order_id
+--     GROUP BY YEAR(o.order_date), MONTH(o.order_date)
+-- )
+-- SELECT 
+--     order_year,
+--     order_month,
+--     ROUND(revenue, 2) AS revenue,
+--     ROUND(LAG(revenue) OVER (ORDER BY order_year, order_month), 2) AS previous_month_revenue,
+--     ROUND(
+--         revenue - LAG(revenue) OVER (ORDER BY order_year, order_month),
+--         2
+--     ) AS revenue_growth
+-- FROM monthly_sales;
+
+-- -- Q37: Cohort by First Purchase Month
+-- -- Groups customers by their first purchase period to analyze retention over time.
+-- SELECT 
+--     customer_id,
+--     DATE_FORMAT(MIN(order_date), '%Y-%m') AS cohort_month
+-- FROM orders
+-- GROUP BY customer_id
+-- ORDER BY cohort_month, customer_id;
+
+-- -- Q38: Repeat Purchase Classification
+-- -- Helps distinguish one-time buyers from repeat customers for loyalty analysis
+-- SELECT 
+--     o.customer_id,
+--     COUNT(o.id) AS total_orders,
+--     CASE
+--         WHEN COUNT(o.id) > 1 THEN 'Repeat Customer'
+--         ELSE 'One-Time Customer'
+--     END AS customer_type
+-- FROM orders o
+-- GROUP BY o.customer_id
+-- ORDER BY total_orders DESC;
+
+-- -- Q39: Average Days Between Orders per Customer
+-- -- Measures customer reorder intervals to understand buying cycles
+-- WITH customer_orders AS (
+--     SELECT 
+--         customer_id,
+--         order_date,
+--         LAG(order_date) OVER (
+--             PARTITION BY customer_id
+--             ORDER BY order_date
+--         ) AS previous_order_date
+--     FROM orders
+-- )
+-- SELECT 
+--     customer_id,
+--     ROUND(AVG(DATEDIFF(order_date, previous_order_date)), 2) AS avg_days_between_orders
+-- FROM customer_orders
+-- WHERE previous_order_date IS NOT NULL
+-- GROUP BY customer_id
+-- ORDER BY avg_days_between_orders;
+
+-- -- Q40: Product Sales Rank Within Category
+-- -- Ranks products inside each category to compare category-level performance
+-- SELECT 
+--     p.category,
+--     p.product_name,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue,
+--     RANK() OVER (
+--         PARTITION BY p.category
+--         ORDER BY SUM(od.quantity * od.unit_price * (1 - od.discount)) DESC
+--     ) AS category_product_rank
+-- FROM products p
+-- JOIN order_details od
+--     ON p.id = od.product_id
+-- GROUP BY p.category, p.product_name;
+
+-- -- Q41: Top Customer per Country
+-- -- Identifies the highest-value customer in each country for regional account focus
+-- WITH customer_country_revenue AS (
+--     SELECT 
+--         c.country_region,
+--         c.id AS customer_id,
+--         c.company,
+--         SUM(od.quantity * od.unit_price * (1 - od.discount)) AS revenue
+--     FROM customers c
+--     JOIN orders o
+--         ON c.id = o.customer_id
+--     JOIN order_details od
+--         ON o.id = od.order_id
+--     GROUP BY c.country_region, c.id, c.company
+-- )
+-- SELECT *
+-- FROM (
+--     SELECT 
+--         country_region,
+--         customer_id,
+--         company,
+--         ROUND(revenue, 2) AS revenue,
+--         RANK() OVER (
+--             PARTITION BY country_region
+--             ORDER BY revenue DESC
+--         ) AS country_rank
+--     FROM customer_country_revenue
+-- ) ranked
+-- WHERE country_rank = 1;
+
+-- -- Q42: Reorder Risk Products
+-- -- Highlights products likely to run low or need replenishment based on sales activity
+-- SELECT 
+--     p.id AS product_id,
+--     p.product_name,
+--     p.category,
+--     p.reorder_level,
+--     p.target_level,
+--     p.minimum_reorder_quantity,
+--     CASE
+--         WHEN p.reorder_level >= p.target_level THEN 'Check Threshold'
+--         WHEN p.reorder_level > 0 THEN 'Monitor'
+--         ELSE 'No Reorder Level'
+--     END AS stock_flag
+-- FROM products p
+-- ORDER BY p.reorder_level DESC, p.product_name;
+-- TIER 4: Q43 - Q50
+-- Reports, geographic revenue, supplier/product performance, executive summary
+
+-- Q43: Monthly Sales Report
+-- Provides a regular business performance snapshot combining monthly sales insights
+-- SELECT 
+--     YEAR(o.order_date) AS order_year,
+--     MONTH(o.order_date) AS order_month,
+--     COUNT(DISTINCT o.id) AS total_orders,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS total_revenue
+-- FROM orders o
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY YEAR(o.order_date), MONTH(o.order_date)
+-- ORDER BY order_year, order_month;
+
+-- -- Q44: Geographic Revenue by Country
+-- -- Shows which countries generate the most revenue, supporting geographic strategy
+-- SELECT 
+--     c.country_region,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM customers c
+-- JOIN orders o
+--     ON c.id = o.customer_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY c.country_region
+-- ORDER BY revenue DESC;
+
+-- -- Q45: Geographic Revenue by City
+-- -- Reveals top-performing cities by revenue contribution
+-- SELECT 
+--     c.city,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue
+-- FROM customers c
+-- JOIN orders o
+--     ON c.id = o.customer_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY c.city
+-- ORDER BY revenue DESC;
+
+-- -- Q46: Product Count by Category
+-- -- Shows how product category performance varies across geographic markets.
+-- SELECT 
+--     p.category,
+--     COUNT(*) AS product_count
+-- FROM products p
+-- GROUP BY p.category
+-- ORDER BY product_count DESC;
+
+-- -- Q47: Orders by Shipper
+-- -- Summarizes how many orders each shipping provider handles
+-- SELECT 
+--     s.id AS shipper_id,
+--     s.company AS shipper_name,
+--     COUNT(o.id) AS total_orders
+-- FROM shippers s
+-- LEFT JOIN orders o
+--     ON s.id = o.shipper_id
+-- GROUP BY s.id, s.company
+-- ORDER BY total_orders DESC, shipper_name;
+
+-- -- Q48: Shipping Fee by Shipper
+-- -- Compares shipping costs by provider to evaluate logistics expenses
+-- SELECT 
+--     s.company AS shipper_name,
+--     ROUND(SUM(o.shipping_fee), 2) AS total_shipping_fee
+-- FROM shippers s
+-- JOIN orders o
+--     ON s.id = o.shipper_id
+-- GROUP BY s.company
+-- ORDER BY total_shipping_fee DESC;
+
+-- -- Q49: Executive KPI Summary
+-- -- Brings major KPIs together into one summary view for quick executive decision-making
+-- SELECT
+--     (SELECT COUNT(*) FROM orders) AS total_orders,
+
+--     (SELECT COUNT(DISTINCT customer_id) FROM orders) AS total_customers,
+
+--     (SELECT ROUND(SUM(quantity * unit_price * (1 - discount)), 2)
+--      FROM order_details) AS total_revenue,
+
+--     (SELECT ROUND(SUM(quantity * unit_price * discount), 2)
+--      FROM order_details) AS total_discount_given,
+
+--     (SELECT ROUND(AVG(shipping_fee), 2)
+--      FROM orders) AS avg_shipping_fee,
+
+--     (SELECT ROUND(
+--     (SELECT SUM(quantity * unit_price * (1 - discount)) FROM order_details)
+--     / (SELECT COUNT(*) FROM orders),
+-- 2)) AS avg_order_value;
+
+-- -- Q50: Employee Performance Summary
+-- -- Provides an overall snapshot of employee sales and order performance.
+-- SELECT 
+--     e.id AS employee_id,
+--     CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
+--     COUNT(DISTINCT o.id) AS orders_handled,
+--     ROUND(SUM(od.quantity * od.unit_price * (1 - od.discount)), 2) AS revenue_generated
+-- FROM employees e
+-- JOIN orders o
+--     ON e.id = o.employee_id
+-- JOIN order_details od
+--     ON o.id = od.order_id
+-- GROUP BY e.id, employee_name
+-- ORDER BY revenue_generated DESC;
+
+
